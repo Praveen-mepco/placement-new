@@ -1,0 +1,79 @@
+import pandas as pd
+from elasticsearch import Elasticsearch
+
+# Load the employee dataset (Update the path as per your local setup)
+employee_data = pd.read_csv('D:/Placement Project/elasticsearch-8.13.4-windows-x86_64/Employee Sample Data 1.csv', encoding='ISO-8859-1')
+
+# Connect to Elasticsearch with basic authentication
+es = Elasticsearch(
+    [{'host': 'localhost', 'port': 9200, 'scheme': 'http'}],
+    basic_auth=('elastic', 'Vs_ysb5Sp_b2E=8hv1gs')  # Update to use basic_auth
+)
+
+# Check if Elasticsearch is running
+if es.ping():
+    print("Connected to Elasticsearch!")
+else:
+    raise ValueError("Connection failed.")
+
+# Create an index for employee data
+index_name = 'employee_data'
+
+if not es.indices.exists(index=index_name):
+    es.indices.create(index=index_name)
+    print(f"Index '{index_name}' created.")
+else:
+    print(f"Index '{index_name}' already exists.")
+
+# Define a function to index the data row by row with limited output
+def index_data(es, index_name, data, limit=10):  # Limit parameter
+    for i, row in data.iterrows():
+        # Convert row to dictionary and handle NaN values
+        doc = row.where(pd.notna(row), None).to_dict()  # Replace NaN with None
+        es.index(index=index_name, id=i, document=doc)
+        
+        # Print message for first 'limit' documents only
+        if i < limit:
+            print(f"Indexed document with ID {i}")
+
+# Index the employee data
+index_data(es, index_name, employee_data, limit=10)  # Adjust the limit as needed
+print(f"Data indexed into '{index_name}'.")
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+from elasticsearch import Elasticsearch
+
+# Connect to Elasticsearch with basic authentication
+es = Elasticsearch(
+    [{'host': 'localhost', 'port': 9200, 'scheme': 'http'}],
+    basic_auth=('elastic', 'Vs_ysb5Sp_b2E=8hv1gs')  # Update to use basic_auth
+)
+
+# Check if Elasticsearch is running
+if es.ping():
+    print("Connected to Elasticsearch!")
+else:
+    raise ValueError("Connection failed.")
+
+# Specify your search criteria
+search_field = "Job Title"  # Change this to the field you want to search
+search_value = "Software Engineer"  # Change this to the value you're looking for
+
+# Search for specific criteria
+query = {
+    "query": {
+        "match": {
+            search_field: search_value
+        }
+    }
+}
+
+# Execute the search
+response = es.search(index='employee_data', body=query)
+
+# Print the results
+print("\nSearch Results:")
+if response['hits']['total']['value'] > 0:
+    for hit in response['hits']['hits']:
+        print(hit['_source'])  # Print the source of each document
+else:
+    print("No results found.")

@@ -1,0 +1,26 @@
+def first_non_repeating_char(str)
+  # Create an empty hash to store character counts
+  char_count = {}
+
+  # Traverse through the string and manually count occurrences
+  str.each_char do |char|
+    if char_count.key?(char)
+      char_count[char] += 1
+    else
+      char_count[char] = 1
+    end
+  end
+
+  # Traverse again to find the first non-repeating character
+  str.each_char do |char|
+    return char if char_count[char] == 1
+  end
+
+  # If no non-repeating character is found, return nil
+  nil
+end
+
+# Example usage:
+input_str = "swiss"
+result = first_non_repeating_char(input_str)
+puts "The first non-repeating character is: #{result}
